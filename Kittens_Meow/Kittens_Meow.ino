@@ -1,24 +1,64 @@
-const int buttonPin = 2;     // the number of the pushbutton pin
+const int buttonPin = 2;     // the number of the pushbutton pin (2 and 3 are interupt pins)
 const int motorPin = 9;  // define the pin the motor is connected to
                          // (if you use pin 9,10,11 or 3you can also control speed)
 // variables will change:
-int buttonState = 0;         // variable for reading the pushbutton status
- 
+int oldState = HIGH;         // variable for reading the pushbutton status
+int pattern = 0;          // variable for choosing  
+
  void setup()
  {
   // initialize the motor pin:
   pinMode(motorPin, OUTPUT);
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);
+  oldState = digitalRead(buttonPin);
  }
  
  
 void loop()                     // run over and over again
  {
- motorOnThenOff();
+  ButtonCycle();
+ //motorOnThenOff();
  //motorOnThenOffWithSpeed();
  //motorAcceleration();
  }
+/*
+ * Button cycler() - cycles through a series of predefined patterns
+ */
+ void ButtonCycle() {
+   // Get current button state.       
+   bool newState = digitalRead(buttonPin);
+   // Check if state changed from high to low or vice versa(button press).  
+   if (newState != oldState) {
+    // Short delay to debounce button. 
+    delay(20);
+    // Check if button is still different after debounce.   
+    newState = digitalRead(buttonPin); 
+    if (newState != oldState) {    
+      pattern++;    
+      if (pattern > 2){
+         pattern=0;
+      }
+    }// Set the lastest button state to the old state.
+        //oldState = newState; 
+   }
+  switch(pattern){
+    case 0: analogWrite(motorPin, 0);    // off
+            delay(1000);
+            break;
+    case 1: motorOnThenOff();
+            break;
+    case 2: analogWrite(motorPin, 255);    // off
+            delay(1000);
+            break;
+    case 3: ;  // Blue
+            break;
+    case 4: ; // White
+            break;
+    case 5: ; // Red
+            break;
+  }
+}
  
 /*
  * motorOnThenOff() – turns motor on then off
