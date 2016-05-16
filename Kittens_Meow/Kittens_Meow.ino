@@ -28,8 +28,11 @@ class Motor
   void Update(){
     ButtonCycle();
     switch(pattern){
+      case 0: Blink(); 
       break;
+      case 1: analogWrite(MotorPin,0); 
       break;
+      case 2: ;
       break;            
       case 3: ; 
       break;
