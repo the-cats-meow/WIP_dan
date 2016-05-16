@@ -1,64 +1,112 @@
-const int buttonPin = 2;     // the number of the pushbutton pin (2 and 3 are interupt pins)
-const int motorPin = 9;  // define the pin the motor is connected to
-                         // (if you use pin 9,10,11 or 3you can also control speed)
-// variables will change:
-int oldState = HIGH;         // variable for reading the pushbutton status
-int pattern = 0;          // variable for choosing  
+const int buttonPin = 2;  // the number of the pushbutton pin (2 and 3 are interupt pins)
+const int motorPin = 9;   // define the pin the motor is connected to
+                          // (if you use pin 9,10,11 or 3you can also control speed)
+class Motor
+{
+  // Class Member Variables
+  // These are initialized at startup
+  int MotorPin;      // the number of the motor pin
 
- void setup()
- {
-  // initialize the motor pin:
-  pinMode(motorPin, OUTPUT);
-  // initialize the pushbutton pin as an input:
-  pinMode(buttonPin, INPUT);
-  oldState = digitalRead(buttonPin);
- }
- 
- 
-void loop()                     // run over and over again
- {
-  ButtonCycle();
- //motorOnThenOff();
- //motorOnThenOffWithSpeed();
- //motorAcceleration();
- }
-/*
- * Button cycler() - cycles through a series of predefined patterns
- */
+  // These maintain the current state
+  int oldState;                   // variable for reading the pushbutton status
+  unsigned long previousMillis;   // will store last time LED was updated
+  int pattern;                    // variable for choosing patterns
+
+  // Constructor - creates a motor 
+  // and initializes the member variables and state
+  public:
+  Motor(int pin)
+  {
+  MotorPin = pin;
+  pinMode(motorPin, OUTPUT);     
+  
+  previousMillis = 0; // Unused at the time
+  pattern = 0;
+  oldState = digitalRead(buttonPin);        
+  }
+
+  void Update(){
+    ButtonCycle();
+    switch(pattern){
+      break;
+      break;
+      break;            
+      case 3: ; 
+      break;
+      case 4: ;
+      break;
+      case 5: ;
+      break;
+    }
+  };
+  
+  private:
+  void Blink2() {
+  analogWrite(MotorPin,255);
+  delay(500);
+  analogWrite(MotorPin,0);
+  delay(250);
+  };
+  
+  void Blink()
+  {
+    // check to see if it's time to change the state of the LED
+    unsigned long currentMillis = millis();
+     
+    if(currentMillis % 500 > 250) //250ms on/off time
+    {
+      previousMillis = currentMillis;  // Remember the time
+      analogWrite(MotorPin,255);  // Update the actual LED
+    }
+    else if (currentMillis % 500 <= 250)
+    {
+      previousMillis = currentMillis;   // Remember the time
+      analogWrite(MotorPin,0);   // Update the actual LED
+    }
+  };
+  
  void ButtonCycle() {
-   // Get current button state.       
+   // Get current button state.
+   // Current logic is for pushbutton and not toggle button       
    bool newState = digitalRead(buttonPin);
    // Check if state changed from high to low or vice versa(button press).  
-   if (newState != oldState) {
+   if ((newState != oldState) && (oldState == HIGH)) {
     // Short delay to debounce button. 
     delay(20);
     // Check if button is still different after debounce.   
     newState = digitalRead(buttonPin); 
     if (newState != oldState) {    
       pattern++;    
-      if (pattern > 2){
+      if (pattern > 1){
          pattern=0;
       }
-    }// Set the lastest button state to the old state.
-        //oldState = newState; 
-   }
-  switch(pattern){
-    case 0: analogWrite(motorPin, 0);    // off
-            delay(1000);
-            break;
-    case 1: motorOnThenOff();
-            break;
-    case 2: analogWrite(motorPin, 255);    // off
-            delay(1000);
-            break;
-    case 3: ;  // Blue
-            break;
-    case 4: ; // White
-            break;
-    case 5: ; // Red
-            break;
+     //Set the lastest button state to the old state.
+        oldState = newState; 
+    }
+    }
+  else {
+    oldState = newState;
+    }
+  };
+};
+
+void setup() {
+  
+  // initialize the motor pin:
+  // initialize the pushbutton pin as an input:
+  pinMode(buttonPin, INPUT);
+  
   }
-}
+Motor motor1(motorPin);
+ 
+void loop()                     // run over and over again
+ {
+ motor1.Update();
+ //ButtonCycle();
+ //motorOnThenOff();
+ //motorOnThenOffWithSpeed();
+ //motorAcceleration();
+ }
  
 /*
  * motorOnThenOff() – turns motor on then off
