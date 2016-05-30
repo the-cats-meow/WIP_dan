@@ -11,6 +11,7 @@ class Motor
   int oldState;                   // variable for reading the pushbutton status
   unsigned long previousMillis;   // will store last time LED was updated
   int pattern;                    // variable for choosing patterns
+  int counter = 0;                // for patterns that incriment something. is currently for testing only
 
   // Constructor - creates a motor 
   // and initializes the member variables and state
@@ -30,9 +31,9 @@ class Motor
     switch(pattern){
       case 0: Blink(); 
       break;
-      case 1: analogWrite(MotorPin,0); 
+      case 1: Fade2(); 
       break;
-      case 2: ;
+      case 2: analogWrite(MotorPin,0);
       break;            
       case 3: ; 
       break;
@@ -58,17 +59,37 @@ class Motor
      
     if(currentMillis % 500 > 250) //250ms on/off time
     {
-      previousMillis = currentMillis;  // Remember the time
+      //previousMillis = currentMillis;  // Remember the time
       analogWrite(MotorPin,255);  // Update the actual LED
     }
     else if (currentMillis % 500 <= 250)
     {
-      previousMillis = currentMillis;   // Remember the time
+      //previousMillis = currentMillis;   // Remember the time
       analogWrite(MotorPin,0);   // Update the actual LED
     }
   };
+
+  void Fade() {
+    unsigned long currentMillis = millis(); 
+    if (currentMillis - previousMillis > 50) {
+      previousMillis = currentMillis;  // Remember the time
+      long strength = (currentMillis % 510) - 255; //produce a number between -255 and +255
+      analogWrite(MotorPin,abs(strength));  // Update the actual LED, uses abs to get absolute value
+    }
+  };
+
+  //Fade2 is an attempt at a smoother fade. Goes all the way to Zero (off) which is feels like it is less desireable then I wanted, might make a little snippet of code to constain the vibe between two pusling patterns
+  void Fade2() {
+    unsigned long currentMillis = millis(); 
+    if (currentMillis - previousMillis > 5) {  // the "Magic number" is the ms between incrimenting the counter
+      previousMillis = currentMillis;  // Remember the time
+      counter += 1;
+      long strength = (counter % (510)) - 255; //produce a number between -255 and +255
+      analogWrite(MotorPin,abs(strength));  // Update the actual LED, uses abs to get absolute value
+    }
+  };
   
- void ButtonCycle() {
+  void ButtonCycle() {
    // Get current button state.
    // Current logic is for pushbutton and not toggle button       
    bool newState = digitalRead(buttonPin);
@@ -80,7 +101,7 @@ class Motor
     newState = digitalRead(buttonPin); 
     if (newState != oldState) {    
       pattern++;    
-      if (pattern > 1){
+      if (pattern > 2){
          pattern=0;
       }
      //Set the lastest button state to the old state.
