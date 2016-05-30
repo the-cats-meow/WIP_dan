@@ -1,6 +1,18 @@
+
+#include "pitches.h"
+
 const int buttonPin = 2;  // the number of the pushbutton pin (2 and 3 are interupt pins)
 const int motorPin = 9;   // define the pin the motor is connected to
                           // (if you use pin 9,10,11 or 3you can also control speed)
+
+// test melody, had to add tiny rests between notes to make them definitive and different.
+int testMelody[] = {
+  REST, NOTE_C4, REST, NOTE_G3, REST, NOTE_G3, REST, NOTE_A3, REST, NOTE_G3, REST, REST, REST, NOTE_B3, REST, NOTE_C4, END
+};
+int testNoteDurations[] = {
+  1, 4, 64, 8, 64, 8, 64, 4, 64, 4, 64, 4, 64, 4, 64, 4,
+};
+                          
 class Motor
 {
   // Class Member Variables
@@ -31,7 +43,7 @@ class Motor
     switch(pattern){
       case 0: Blink(); 
       break;
-      case 1: Fade2(); 
+      case 1: PlayNotes(testMelody,testNoteDurations,2000); 
       break;
       case 2: analogWrite(MotorPin,0);
       break;            
@@ -88,6 +100,38 @@ class Motor
       analogWrite(MotorPin,abs(strength));  // Update the actual LED, uses abs to get absolute value
     }
   };
+
+  //  PlayNotes is used to translate a pair of arrays (notes and durations) into a song
+  //  Melody is an array of notes, using their , and 2) their associated Duration (measured by note value, not ms length)
+  //  Suggestion to make the starting note a rest (remeber to add a time value with it), code currently skips first note on the first loop.
+  //  Finish melody with an END note, tells the machine to loop
+  void PlayNotes(int melody[], int noteDurations[], int measureLength)  {
+    
+    // to calculate the note duration, take measureLength divided by the note type.
+    // e.g. quarter note = measure / 4, eighth note = 1000/8, etc.
+    // Note: only works for 4/4 time (or anything where top and bottom match) look at ways to fix this in future
+    int noteDuration = measureLength / noteDurations[counter];
+    unsigned long currentMillis = millis(); 
+    if (currentMillis - previousMillis >= noteDuration) {
+      counter += 1;
+      if (melody[counter] == 1){
+        counter = 0;
+      }
+      if (melody[counter] == 0){
+        analogWrite(MotorPin,0);
+      }
+      else{
+        int strength = map(melody[counter], 130, 550, 50, 255);
+        analogWrite(MotorPin,strength);
+      }
+      previousMillis = currentMillis; 
+          
+    // to distinguish the notes, set a minimum time between them.
+    // the note's duration + 30% seems to work well:\
+    //int pauseBetweenNotes = noteDuration * 1.30;
+    //delay(pauseBetweenNotes);
+    }
+  };
   
   void ButtonCycle() {
    // Get current button state.
@@ -101,6 +145,7 @@ class Motor
     newState = digitalRead(buttonPin); 
     if (newState != oldState) {    
       pattern++;    
+      counter = 0;
       if (pattern > 2){
          pattern=0;
       }
