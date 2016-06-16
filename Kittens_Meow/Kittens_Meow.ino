@@ -3,6 +3,7 @@
 const int buttonPin = 2;  // the number of the pushbutton pin (2 and 3 are interupt pins)
 const int motorPin = 9;   // define the pin the motor is connected to
                           // (if you use pin 9,10,11 or 3you can also control speed)
+const int caseMax = 5;    // Sets the number of patterns the program will run through (includes blank patterns)
           
 
 
