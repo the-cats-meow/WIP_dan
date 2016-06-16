@@ -1,17 +1,21 @@
-
 #include "pitches.h"
 
 const int buttonPin = 2;  // the number of the pushbutton pin (2 and 3 are interupt pins)
 const int motorPin = 9;   // define the pin the motor is connected to
                           // (if you use pin 9,10,11 or 3you can also control speed)
+          
+
 
 // test melody, had to add tiny rests between notes to make them definitive and different.
 int testMelody[] = {
   REST, NOTE_C4, REST, NOTE_G3, REST, NOTE_G3, REST, NOTE_A3, REST, NOTE_G3, REST, REST, REST, NOTE_B3, REST, NOTE_C4, END
 };
 int testNoteDurations[] = {
-  1, 4, 64, 8, 64, 8, 64, 4, 64, 4, 64, 4, 64, 4, 64, 4,
+  4, 4, 64, 8, 64, 8, 64, 4, 64, 4, 64, 4, 64, 4, 64, 4,
 };
+int BPM = 120;
+float tSignature[] = {4.0,4.0};
+// End test melody
                           
 class Motor
 {
@@ -21,17 +25,19 @@ class Motor
 
   // These maintain the current state
   int oldState;                   // variable for reading the pushbutton status
-  unsigned long previousMillis;   // will store last time LED was updated
+  unsigned long previousMillis;   // will store last time motor was updated
   int pattern;                    // variable for choosing patterns
+  int patternCaseMax;              // Sets the number of patterns the program will run through (includes blank patterns)
   int counter = 0;                // for patterns that incriment something. is currently for testing only
 
   // Constructor - creates a motor 
   // and initializes the member variables and state
   public:
-  Motor(int pin)
+  Motor(int pin, int caseMax)
   {
   MotorPin = pin;
   pinMode(motorPin, OUTPUT);     
+  patternCaseMax = caseMax;
   
   previousMillis = 0; // Unused at the time
   pattern = 0;
@@ -43,7 +49,7 @@ class Motor
     switch(pattern){
       case 0: Blink(); 
       break;
-      case 1: PlayNotes(testMelody,testNoteDurations,2000); 
+      case 1: PlayNotes(testMelody,testNoteDurations,BPM,tSignature); 
       break;
       case 2: analogWrite(MotorPin,0);
       break;            
@@ -101,16 +107,17 @@ class Motor
     }
   };
 
-  //  PlayNotes is used to translate a pair of arrays (notes and durations) into a song
-  //  Melody is an array of notes, using their , and 2) their associated Duration (measured by note value, not ms length)
-  //  Suggestion to make the starting note a rest (remeber to add a time value with it), code currently skips first note on the first loop.
-  //  Finish melody with an END note, tells the machine to loop
-  void PlayNotes(int melody[], int noteDurations[], int measureLength)  {
-    
-    // to calculate the note duration, take measureLength divided by the note type.
-    // e.g. quarter note = measure / 4, eighth note = 1000/8, etc.
-    // Note: only works for 4/4 time (or anything where top and bottom match) look at ways to fix this in future
-    int noteDuration = measureLength / noteDurations[counter];
+
+  void PlayNotes(int melody[], int noteDurations[], int beatsPerMinute, float signature[])  {
+    //  PlayNotes is used to translate a pair of arrays (notes and durations) into a song, Modified by BPM and a time signature.
+    //  Melody is an array of notes, using their , and 2) their associated Duration (measured by note value, not ms length)
+    //  Suggestion to make the starting note a rest (remeber to add a time value with it), code currently skips first note on the first loop.
+    //  Finish melody with an END note, tells the machine to loop
+
+    // Note Length is determined by a less then elegant formula
+    // Haven't figured out how to use the time signature to it's fullest extent yet. currently in format [num,denom]
+    // 60000 = 60 (seconds in a minute) * 1000 (ms in a second) to get ms in a minute.
+    int noteDuration = (60000 / beatsPerMinute) * (signature[1] / noteDurations[counter]);  
     unsigned long currentMillis = millis(); 
     if (currentMillis - previousMillis >= noteDuration) {
       counter += 1;
@@ -146,7 +153,7 @@ class Motor
     if (newState != oldState) {    
       pattern++;    
       counter = 0;
-      if (pattern > 2){
+      if (pattern > patternCaseMax){
          pattern=0;
       }
      //Set the lastest button state to the old state.
@@ -166,7 +173,7 @@ void setup() {
   pinMode(buttonPin, INPUT);
   
   }
-Motor motor1(motorPin);
+Motor motor1(motorPin,caseMax);
  
 void loop()                     // run over and over again
  {
