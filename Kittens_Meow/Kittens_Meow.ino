@@ -129,7 +129,9 @@ class Motor
         analogWrite(MotorPin,0);
       }
       else{
-        int strength = map(melody[counter], 130, 550, 50, 255);
+        //int strength = log(melody[counter])/(log(NOTE_CS5)*255);  //Couldn't get this one to produce a vibration
+        int strength = (melody[counter]*melody[counter])/(NOTE_CS5*NOTE_CS5/255);  //new experimental mapping code, change the note to the highest note you want to limit yourself too, playing around with this might get you better results even if you don't use extra range
+        //int strength = map(melody[counter], NOTE_C3, NOTE_CS5, 50, 255); //liniar mapping of notes
         analogWrite(MotorPin,strength);
       }
       previousMillis = currentMillis; 
